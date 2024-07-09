@@ -8,12 +8,20 @@ import { checkEndGame, checkWinnerFrom } from './logic/board';
 
 import Square from './components/Square';
 import { WinnerModal } from './components/WinnerModal';
+import { resetGameStorage, saveGameToStorage } from './logic/storage';
 
 function App() {
-  const [board, setBoard] = useState(
-    Array(9).fill(null)
-  );
-  const [turn, setTurn] = useState(TURNS.X);
+  const [board, setBoard] = useState(() => {
+    //console.log('render')
+    //console.log('Start board')
+
+    const boardFromStorage = window.localStorage.getItem('board');
+    return boardFromStorage ? JSON.parse(boardFromStorage) : Array(9).fill(null);
+  });
+  const [turn, setTurn] = useState(() => {
+    const turnFromStorage = window.localStorage.getItem('turn');
+    return turnFromStorage ?? TURNS.X;
+  });
   const [winner, setWinner] = useState(null); // null -> no winner, false -> draw
 
 
@@ -21,6 +29,7 @@ function App() {
     setBoard(Array(9).fill(null))
     setTurn(TURNS.X)
     setWinner(null)
+    resetGameStorage()
   }
 
 
@@ -35,7 +44,11 @@ function App() {
 
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X;
     setTurn(newTurn)
-
+    // Save game here
+    saveGameToStorage({
+      board: newBoard,
+      turn: newTurn
+    })
     // Check if there is a winner
     const newWinner = checkWinnerFrom(newBoard);
     if (newWinner) {
@@ -77,7 +90,7 @@ function App() {
             {TURNS.O}
           </Square>
         </section>
-        <WinnerModal resetGame={resetGame} winner={winner}/>
+        <WinnerModal resetGame={resetGame} winner={winner} />
       </main>
     </>
   )
